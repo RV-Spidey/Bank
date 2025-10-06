@@ -17,23 +17,24 @@
         <a href="/">Home</a>
         <a href="/balance">Accounts</a>
         <a href="/transfer">Transfers</a>
-        <a href="/login">Login</a>
+        <a href="/dashboard" id="logoutBtn">Logout</a>
       </nav>
     </div>
   </header>
 
   <main class="container" style="padding:22px 0;">
     <div class="panel-box">
-      <h2 class="panel-title">Account Balances</h2>
-      <table>
-        <thead>
-          <tr><th>Account</th><th>Number</th><th>Balance</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Checking</td><td>0012345678</td><td>$5,420.35</td></tr>
-          <tr><td>Savings</td><td>0098765432</td><td>$12,315.22</td></tr>
-        </tbody>
-      </table>
+      <h2 class="panel-title">Account Balance</h2>
+      <div id="loading">Loading...</div>
+      <div id="accountInfo" style="display: none;">
+        <table>
+          <thead>
+            <tr><th>Account Holder</th><th>Account Number</th><th>Balance</th></tr>
+          </thead>
+          <tbody id="accountData">
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 
@@ -50,7 +51,38 @@
     </div>
   </footer>
   <script src="/js/app.js"></script>
+  <script>
+    async function loadBalance() {
+      try {
+        const response = await fetch('/api/user');
+        if (!response.ok) {
+          window.location.href = '/login';
+          return;
+        }
+        const user = await response.json();
+        
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('accountInfo').style.display = 'block';
+        document.getElementById('accountData').innerHTML = `
+          <tr>
+            <td>${user.name}</td>
+            <td>${user.accountNumber}</td>
+            <td>$${user.balance.toFixed(2)}</td>
+          </tr>
+        `;
+      } catch (error) {
+        console.error('Error loading balance:', error);
+        document.getElementById('loading').textContent = 'Error loading account information';
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    });
+
+    loadBalance();
+  </script>
 </body>
 </html>
-
-

@@ -26,7 +26,9 @@
   <main class="container auth-container">
     <div class="panel-box auth-card">
       <h2 class="panel-title">Open an Account</h2>
-      <form action="/dashboard" method="GET">
+      <form id="signupForm">
+        <div id="errorMessage" style="color: #c9a227; margin-bottom: 10px; display: none;"></div>
+        <div id="successMessage" style="color: #4CAF50; margin-bottom: 10px; display: none;"></div>
         <div class="form-row">
           <label for="name">Full Name</label>
           <input type="text" id="name" name="name" required />
@@ -36,16 +38,8 @@
           <input type="email" id="email" name="email" required />
         </div>
         <div class="form-row">
-          <label for="type">Account Type</label>
-          <select id="type" name="type" required>
-            <option value="checking">Checking</option>
-            <option value="savings">Savings</option>
-            <option value="business">Business</option>
-          </select>
-        </div>
-        <div class="form-row">
           <label for="password">Password</label>
-          <input type="password" id="password" name="password" required />
+          <input type="password" id="password" name="password" required minlength="6" />
         </div>
         <div class="form-actions">
           <a class="btn secondary" href="/">Cancel</a>
@@ -69,7 +63,42 @@
     </div>
   </footer>
   <script src="/js/app.js"></script>
+  <script>
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorDiv = document.getElementById('errorMessage');
+      const successDiv = document.getElementById('successMessage');
+      errorDiv.style.display = 'none';
+      successDiv.style.display = 'none';
+
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          successDiv.textContent = `Account created! Your account number is: ${data.user.accountNumber}`;
+          successDiv.style.display = 'block';
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 2000);
+        } else {
+          errorDiv.textContent = data.error || 'Signup failed';
+          errorDiv.style.display = 'block';
+        }
+      } catch (error) {
+        errorDiv.textContent = 'Network error. Please try again.';
+        errorDiv.style.display = 'block';
+      }
+    });
+  </script>
 </body>
 </html>
-
-

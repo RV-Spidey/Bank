@@ -17,7 +17,7 @@
         <a href="/">Home</a>
         <a href="/balance">Accounts</a>
         <a href="/transfer">Transfers</a>
-        <a href="/login">Login</a>
+        <a href="/dashboard" id="logoutBtn">Logout</a>
       </nav>
     </div>
   </header>
@@ -25,22 +25,18 @@
   <main class="container" style="padding:22px 0;">
     <div class="panel-box">
       <h2 class="panel-title">Deposit Funds</h2>
-      <form>
-        <div class="form-row">
-          <label for="dep-account">Account</label>
-          <select id="dep-account">
-            <option>Checking - 0012345678</option>
-            <option>Savings - 0098765432</option>
-          </select>
-        </div>
+      <form id="depositForm">
+        <div id="message" style="margin-bottom: 10px; display: none;"></div>
         <div class="form-row">
           <label for="dep-amount">Amount</label>
-          <input id="dep-amount" type="number" min="0" step="0.01" placeholder="0.00" />
+          <input id="dep-amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
         </div>
         <div class="form-actions">
-          <button type="button" class="btn">Submit Deposit</button>
+          <a class="btn secondary" href="/dashboard">Cancel</a>
+          <button type="submit" class="btn">Submit Deposit</button>
         </div>
       </form>
+      <div id="currentBalance" style="margin-top: 20px;"></div>
     </div>
   </main>
 
@@ -57,7 +53,62 @@
     </div>
   </footer>
   <script src="/js/app.js"></script>
+  <script>
+    async function loadUser() {
+      try {
+        const response = await fetch('/api/user');
+        if (!response.ok) {
+          window.location.href = '/login';
+          return;
+        }
+        const user = await response.json();
+        document.getElementById('currentBalance').textContent = `Current Balance: $${user.balance.toFixed(2)}`;
+      } catch (error) {
+        console.error('Error loading user:', error);
+      }
+    }
+
+    document.getElementById('depositForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const messageDiv = document.getElementById('message');
+      messageDiv.style.display = 'none';
+
+      const amount = document.getElementById('dep-amount').value;
+
+      try {
+        const response = await fetch('/api/deposit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          messageDiv.style.color = '#4CAF50';
+          messageDiv.textContent = `Successfully deposited $${parseFloat(amount).toFixed(2)}. New balance: $${data.balance.toFixed(2)}`;
+          messageDiv.style.display = 'block';
+          document.getElementById('dep-amount').value = '';
+          document.getElementById('currentBalance').textContent = `Current Balance: $${data.balance.toFixed(2)}`;
+        } else {
+          messageDiv.style.color = '#c9a227';
+          messageDiv.textContent = data.error || 'Deposit failed';
+          messageDiv.style.display = 'block';
+        }
+      } catch (error) {
+        messageDiv.style.color = '#c9a227';
+        messageDiv.textContent = 'Network error. Please try again.';
+        messageDiv.style.display = 'block';
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    });
+
+    loadUser();
+  </script>
 </body>
 </html>
-
-

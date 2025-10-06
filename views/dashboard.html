@@ -15,12 +15,13 @@
       </div>
       <nav class="nav" aria-label="Main navigation">
         <a href="/">Home</a>
-        <a href="/login">Logout</a>
+        <a href="#" id="logoutBtn">Logout</a>
       </nav>
     </div>
   </header>
 
   <main class="container" style="padding: 22px 0;">
+    <div id="welcomeMessage" style="margin-bottom: 20px; font-size: 1.2em;"></div>
     <div class="sidebar-layout">
       <aside class="sidebar">
         <h3>Customer Portal</h3>
@@ -34,6 +35,13 @@
 
       <section>
         <div class="panel-box">
+          <h3 class="panel-title">Account Information</h3>
+          <div id="accountInfo" style="line-height: 1.8;">
+            <p><strong>Account Number:</strong> <span id="accountNumber">Loading...</span></p>
+            <p><strong>Current Balance:</strong> $<span id="balance">0.00</span></p>
+          </div>
+        </div>
+        <div class="panel-box" style="margin-top: 20px;">
           <h3 class="panel-title">Quick Actions</h3>
           <p>Use the sidebar to access Balance, Deposit, Withdraw, and Transfer.</p>
         </div>
@@ -56,7 +64,32 @@
   </footer>
 
   <script src="/js/app.js"></script>
+  <script>
+    async function loadUserData() {
+      try {
+        const response = await fetch('/api/user');
+        if (!response.ok) {
+          window.location.href = '/login';
+          return;
+        }
+        const user = await response.json();
+        
+        document.getElementById('welcomeMessage').textContent = `Welcome, ${user.name}!`;
+        document.getElementById('accountNumber').textContent = user.accountNumber;
+        document.getElementById('balance').textContent = user.balance.toFixed(2);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        window.location.href = '/login';
+      }
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    });
+
+    loadUserData();
+  </script>
 </body>
 </html>
-
-
