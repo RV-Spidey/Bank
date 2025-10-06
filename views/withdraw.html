@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Legacy Bank - Withdraw</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="branding">
+        <div class="logo-emblem" aria-hidden="true"></div>
+        <div class="bank-name">Legacy Bank Systems <small>Secure Banking Since 1965</small></div>
+      </div>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="/">Home</a>
+        <a href="/balance">Accounts</a>
+        <a href="/transfer">Transfers</a>
+        <a href="/login">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" style="padding:22px 0;">
+    <div class="panel-box">
+      <h2 class="panel-title">Withdraw Funds</h2>
+      <form>
+        <div class="form-row">
+          <label for="wd-account">Account</label>
+          <select id="wd-account">
+            <option>Checking - 0012345678</option>
+            <option>Savings - 0098765432</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="wd-amount">Amount</label>
+          <input id="wd-amount" type="number" min="0" step="0.01" placeholder="0.00" />
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn">Submit Withdrawal</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <img class="watermark" src="/icons/emblem.svg" alt="Bank emblem watermark" />
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© 2025 Legacy Bank Systems</div>
+      <div>
+        <a href="/balance">Accounts</a> ·
+        <a href="/transfer">Transfers</a>
+      </div>
+      <div>Contact: support@legacybank.example</div>
+    </div>
+  </footer>
+  <script src="/js/app.js"></script>
+</body>
+</html>
+
+
