@@ -7,9 +7,16 @@ body {
   background: #f3efdf url('/images/paper-texture.png'); /* subtle paper texture if present */
   color: #0b1a33;
   font-family: "Times New Roman", Georgia, serif;
+  display: flex;
+  flex-direction: column;
 }
 
 .container { width: 1200px; max-width: 95%; margin: 0 auto; }
+
+/* Main content wrapper */
+main {
+  flex: 1;
+}
 
 /* Header */
 .site-header {
@@ -105,7 +112,7 @@ th { background: linear-gradient(#e9dfb8, #d6c78f); text-align: left; }
 /* Footer */
 .site-footer {
   background: linear-gradient(#10223e, #0b1a33);
-  color: #f3efdf; border-top: 3px solid #c9a227; margin-top: 40px;
+  color: #f3efdf; border-top: 3px solid #c9a227;
   box-shadow: 0 -4px 10px rgba(0,0,0,0.35);
 }
 .site-footer .container { padding: 16px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }

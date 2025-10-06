@@ -26,9 +26,15 @@ const initDB = async () => {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         account_number VARCHAR(12) UNIQUE NOT NULL,
+        pin_hash VARCHAR(255) NOT NULL,
         balance DECIMAL(15, 2) DEFAULT 0.00,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    // Add PIN column to existing users if it doesn't exist
+    await client.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS pin_hash VARCHAR(255);
     `);
 
     await client.query(`

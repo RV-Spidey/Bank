@@ -16,8 +16,8 @@
       <nav class="nav" aria-label="Main navigation">
         <a href="/">Home</a>
         <a href="/balance">Accounts</a>
-        <a href="/transfer">Transfers</a>
-        <a href="/dashboard">Contact Us</a>
+        <a href="/transfer">Transfer</a>
+        <a href="/dashboard">Dashboard</a>
         <a href="/login">Login</a>
       </nav>
     </div>
@@ -40,6 +40,10 @@
         <div class="form-row">
           <label for="password">Password</label>
           <input type="password" id="password" name="password" required minlength="6" />
+        </div>
+        <div class="form-row">
+          <label for="pin">PIN (4 digits)</label>
+          <input type="password" id="pin" name="pin" required pattern="[0-9]{4}" maxlength="4" placeholder="1234" />
         </div>
         <div class="form-actions">
           <a class="btn secondary" href="/">Cancel</a>
@@ -74,12 +78,19 @@
       const name = document.getElementById('name').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      const pin = document.getElementById('pin').value;
+
+      if (pin.length !== 4 || !/^\d+$/.test(pin)) {
+        errorDiv.textContent = 'PIN must be exactly 4 digits';
+        errorDiv.style.display = 'block';
+        return;
+      }
 
       try {
         const response = await fetch('/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, password })
+          body: JSON.stringify({ name, email, password, pin })
         });
 
         const data = await response.json();

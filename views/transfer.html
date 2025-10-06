@@ -16,8 +16,9 @@
       <nav class="nav" aria-label="Main navigation">
         <a href="/">Home</a>
         <a href="/balance">Accounts</a>
-        <a href="/transfer">Transfers</a>
-        <a href="/dashboard" id="logoutBtn">Logout</a>
+        <a href="/transfer">Transfer</a>
+        <a href="/dashboard">Dashboard</a>
+        <a href="#" id="logoutBtn">Logout</a>
       </nav>
     </div>
   </header>
@@ -34,6 +35,10 @@
         <div class="form-row">
           <label for="tf-amount">Amount</label>
           <input id="tf-amount" type="number" min="0.01" step="0.01" placeholder="0.00" required />
+        </div>
+        <div class="form-row">
+          <label for="tf-pin">Enter your PIN</label>
+          <input id="tf-pin" type="password" pattern="[0-9]{4}" maxlength="4" placeholder="1234" required />
         </div>
         <div class="form-actions">
           <a class="btn secondary" href="/dashboard">Cancel</a>
@@ -82,6 +87,7 @@
 
       const toAccount = document.getElementById('tf-to').value;
       const amount = document.getElementById('tf-amount').value;
+      const pin = document.getElementById('tf-pin').value;
 
       if (toAccount.length !== 12 || !/^\d+$/.test(toAccount)) {
         messageDiv.style.color = '#c9a227';
@@ -90,11 +96,18 @@
         return;
       }
 
+      if (pin.length !== 4 || !/^\d+$/.test(pin)) {
+        messageDiv.style.color = '#c9a227';
+        messageDiv.textContent = 'PIN must be exactly 4 digits';
+        messageDiv.style.display = 'block';
+        return;
+      }
+
       try {
         const response = await fetch('/api/transfer', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ toAccount, amount })
+          body: JSON.stringify({ toAccount, amount, pin })
         });
 
         const data = await response.json();
@@ -105,6 +118,7 @@
           messageDiv.style.display = 'block';
           document.getElementById('tf-to').value = '';
           document.getElementById('tf-amount').value = '';
+          document.getElementById('tf-pin').value = '';
           await loadUser();
         } else {
           messageDiv.style.color = '#c9a227';

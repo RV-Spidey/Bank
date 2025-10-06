@@ -1,3 +1,4 @@
+require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const helmet = require('helmet');
@@ -106,10 +107,14 @@ app.get('/transfer', (req, res) => {
 
 app.post('/api/signup', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, pin } = req.body;
     
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !pin) {
       return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    if (pin.length !== 4 || !/^\d+$/.test(pin)) {
+      return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
     }
 
     const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -118,6 +123,7 @@ app.post('/api/signup', async (req, res) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
+    const pinHash = await bcrypt.hash(pin, 10);
     let accountNumber;
     let unique = false;
 
@@ -128,8 +134,8 @@ app.post('/api/signup', async (req, res) => {
     }
 
     const result = await pool.query(
-      'INSERT INTO users (full_name, email, password_hash, account_number, balance) VALUES ($1, $2, $3, $4, $5) RETURNING id, full_name, email, account_number, balance',
-      [name, email, passwordHash, accountNumber, 0]
+      'INSERT INTO users (full_name, email, password_hash, account_number, pin_hash, balance) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, full_name, email, account_number, balance',
+      [name, email, passwordHash, accountNumber, pinHash, 0]
     );
 
     const user = result.rows[0];
@@ -224,11 +230,31 @@ app.get('/api/user', requireAuth, async (req, res) => {
 
 app.post('/api/deposit', requireAuth, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, pin } = req.body;
     const amountNum = parseFloat(amount);
 
     if (!amount || amountNum <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
+      return res.status(400).json({ error: 'Invalid PIN' });
+    }
+
+    // Verify PIN
+    const userResult = await pool.query('SELECT pin_hash FROM users WHERE id = $1', [req.session.userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pinHash = userResult.rows[0].pin_hash;
+    if (!pinHash) {
+      return res.status(400).json({ error: 'PIN not set. Please contact support.' });
+    }
+
+    const validPin = await bcrypt.compare(pin, pinHash);
+    if (!validPin) {
+      return res.status(401).json({ error: 'Invalid PIN' });
     }
 
     const client = await pool.connect();
@@ -265,11 +291,31 @@ app.post('/api/deposit', requireAuth, async (req, res) => {
 
 app.post('/api/withdraw', requireAuth, async (req, res) => {
   try {
-    const { amount } = req.body;
+    const { amount, pin } = req.body;
     const amountNum = parseFloat(amount);
 
     if (!amount || amountNum <= 0) {
       return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
+      return res.status(400).json({ error: 'Invalid PIN' });
+    }
+
+    // Verify PIN
+    const userResult = await pool.query('SELECT pin_hash FROM users WHERE id = $1', [req.session.userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pinHash = userResult.rows[0].pin_hash;
+    if (!pinHash) {
+      return res.status(400).json({ error: 'PIN not set. Please contact support.' });
+    }
+
+    const validPin = await bcrypt.compare(pin, pinHash);
+    if (!validPin) {
+      return res.status(401).json({ error: 'Invalid PIN' });
     }
 
     const client = await pool.connect();
@@ -316,11 +362,31 @@ app.post('/api/withdraw', requireAuth, async (req, res) => {
 
 app.post('/api/transfer', requireAuth, async (req, res) => {
   try {
-    const { toAccount, amount } = req.body;
+    const { toAccount, amount, pin } = req.body;
     const amountNum = parseFloat(amount);
 
     if (!toAccount || !amount || amountNum <= 0) {
       return res.status(400).json({ error: 'Invalid transfer details' });
+    }
+
+    if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
+      return res.status(400).json({ error: 'Invalid PIN' });
+    }
+
+    // Verify PIN
+    const userResult = await pool.query('SELECT pin_hash FROM users WHERE id = $1', [req.session.userId]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const pinHash = userResult.rows[0].pin_hash;
+    if (!pinHash) {
+      return res.status(400).json({ error: 'PIN not set. Please contact support.' });
+    }
+
+    const validPin = await bcrypt.compare(pin, pinHash);
+    if (!validPin) {
+      return res.status(401).json({ error: 'Invalid PIN' });
     }
 
     const client = await pool.connect();
